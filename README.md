@@ -1,52 +1,64 @@
-# Tello C++ Library
+# Tello C++ SDK
 
-A single-header C++20 library for controlling the Ryze Tello drone. It provides a simple, modern C++ interface to the Tello SDK 2.0.
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://isocpp.org/std/the-standard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey.svg)]()
+[![Header-Only](https://img.shields.io/badge/Header--Only-blueviolet.svg)](https://en.wikipedia.org/wiki/Header-only)
 
-This library is header-only, requiring no separate compilation steps. It includes a lightweight, cross-platform UDP socket implementation.
+A modern, single-header C++20 library for controlling the Ryze Tello drone. This library provides a clean, intuitive, and robust interface to the official Tello SDK, making it easy to integrate drone control into your C++ applications.
 
-## Features
+It is designed to be self-contained and easy to use, with an embedded lightweight, cross-platform UDP socket implementation.
 
--   **Full Tello SDK 2.0 Support**: Implements all control, set, and read commands.
--   **Header-Only**: Simply include `tello.h` in your project.
--   **Cross-Platform**: Works on both Windows and Linux.
--   **Modern C++20**: Utilizes modern C++ features like `<format>`, `<concepts>`, and `<jthread>` for a clean and efficient API.
--   **Asynchronous State Updates**: Receives drone state information (attitude, battery, etc.) on a background thread.
--   **Mission Pad Support**: Includes helpers for Mission Pad detection and navigation.
--   **Simple Logging**: Built-in colored logging for easy debugging.
+---
+
+## Key Features
+
+-   **✅ Full Tello SDK 2.0 Support**: Implements all control, set, and read commands from the official SDK.
+-   **📦 Header-Only**: Simply include `tello.h` in your project with no separate compilation steps required.
+-   **🖥️ Cross-Platform**: Fully functional on both Windows and Linux environments.
+-   **🚀 Modern C++20**: Leverages features like `<format>`, `<concepts>`, `<jthread>`, and `<ranges>` for a clean and efficient API.
+-   **📡 Asynchronous State Updates**: Receives drone telemetry (attitude, battery, height, etc.) on a dedicated background thread without blocking your main logic.
+-   **🎯 Mission Pad Support**: Provides a simple and explicit API for Mission Pad detection and navigation.
+-   **💡 Simple Logging**: Includes built-in colored logging for easy debugging, which can be enabled by defining `TELLO_DEBUG`.
+-   **🔁 Robust Connection**: Automatically retries the initial connection command to ensure a stable start.
 
 ## Requirements
 
--   A C++20 compliant compiler (e.g., GCC 10+, Clang 12+, MSVC v19.29+).
--   A network connection to the Tello drone.
+-   A C++20 compliant compiler (e.g., MSVC v19.29+, GCC 10+, Clang 12+).
+-   A Wi-Fi connection to the Tello drone's network.
 
-## How to Use
+## Installation
 
-1.  Download `tello.h`.
-2.  Include it in your C++ source file.
-3.  Instantiate the `Tello` class.
-4.  Connect to the drone and start sending commands.
+As a header-only library, installation is straightforward:
 
-You must be connected to the Tello's Wi-Fi network before running your program.
+1.  Download the latest version of [`tello.h`](tello.h).
+2.  Place the file in your project's include directory.
+3.  Include it in your source file: `#include "tello.h"`.
+
+> [!NOTE]
+> Before running your application, ensure your computer is connected to the Tello drone's Wi-Fi network (e.g., "TELLO-XXXXX").
 
 ## Quick Start Example
 
-The following example demonstrates how to connect to the drone, take off, fly in a square, and land.
+The following example demonstrates how to connect to the drone, perform a simple flight pattern, check the battery, and land safely.
 
 ```cpp
 #include <iostream>
+#include <string>
 #include "tello.h"
 
 int main() {
     Tello tello;
 
-    // Connect to the drone
+    // Connect to the drone's network
     if (!tello.connect()) {
         std::cerr << "Failed to connect to Tello." << std::endl;
         return 1;
     }
 
-    // Set a timeout for actions, otherwise they block forever
-    tello.set_action_timeout(10000); // 10 seconds
+    // Set a timeout for flight actions (in milliseconds)
+    // Otherwise, commands can block indefinitely if the action is not completed.
+    tello.set_action_timeout(15000); // 15 seconds
 
     // Takeoff
     if (!tello.takeoff()) {
@@ -54,26 +66,20 @@ int main() {
         return 1;
     }
 
-    std::cout << "Flying a square pattern..." << std::endl;
+    // Check battery level
+    float battery = tello.get_battery_level();
+    std::cout << "Battery level: " << battery << "%" << std::endl;
 
-    // Fly in a square
-    tello.move_forward(50);
-    tello.turn_right(90);
-    tello.move_forward(50);
-    tello.turn_right(90);
-    tello.move_forward(50);
-    tello.turn_right(90);
-    tello.move_forward(50);
-    tello.turn_right(90);
+    // Fly in a square pattern
+    std::cout << "Flying a square pattern..." << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        tello.move_forward(50);
+        tello.turn_right(90);
+    }
 
     // Land
-    tello.land();
-
     std::cout << "Mission complete. Landing." << std::endl;
+    tello.land();
 
     return 0;
 }
-
-```
-## Credits
-[HerrNamenlos123](https://github.com/HerrNamenlos123/tello) for original library
